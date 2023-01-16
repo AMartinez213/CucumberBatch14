@@ -1,6 +1,7 @@
 package steps;
 
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.Assert;
@@ -8,6 +9,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import utils.CommonsMethods;
 import utils.Constants;
+import utils.DBUtility;
 import utils.ExcelReader;
 
 import java.util.Iterator;
@@ -15,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 public class AddEmployeeSteps extends CommonsMethods {
+
+    String id;
+    String fName,lName;
     @When("user clicks on PIM option")
     public void user_clicks_on_pim_option() {
 //        WebElement pimOption=driver.findElement(By.id("menu_pim_viewPimModule"));
@@ -34,6 +39,7 @@ public class AddEmployeeSteps extends CommonsMethods {
 //        firstName.sendKeys("Kobe");
         sendText(addEmployee.firstNameField,"Kobe");
 
+
 //        WebElement lastName = driver.findElement(By.id("lastName"));
 //        lastName.sendKeys("Bryant");
         sendText(addEmployee.lastNameField, "Bryant");
@@ -51,8 +57,10 @@ public class AddEmployeeSteps extends CommonsMethods {
 
     @When("user enter {string} and {string}")
     public void user_enter_and(String firstName, String lastName) {
-    sendText(addEmployee.firstNameField,firstName);
-    sendText(addEmployee.firstNameField,lastName);
+        fName=firstName;
+        lName=lastName;
+        sendText(addEmployee.firstNameField, firstName);
+        sendText(addEmployee.lastNameField, lastName);
     }
     @When("user enter {string} and {string} for adding multiple employees")
     public void user_enter_and_for_adding_multiple_employees(String firstNameValue, String lastNameValue) {
@@ -147,5 +155,23 @@ public class AddEmployeeSteps extends CommonsMethods {
             }
         }
 
+    @And("user captures employee id")
+    public void userCapturesEmployeedId() {
+        id=addEmployee.empIdLocator.getAttribute("value");
+    }
+
+    @And("added employee is displayed in database")
+    public void addedEmployeeIsDisplayedInDatabase() {
+
+        String query=DatabaseSteps.getFnameLnameQuery()+id;
+        List<Map<String, String>> dataFromDatabase=DBUtility.getListOfMapsFromRset(query);
+
+        String fNameFromDb=dataFromDatabase.get(0).get("emp_firstname");
+        String lNameFromDb=dataFromDatabase.get(0).get("emp_lastname");
+
+        Assert.assertEquals(fName,fNameFromDb);
+        Assert.assertEquals(lName,lNameFromDb);
+
+    }
 }
 
